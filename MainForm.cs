@@ -20,22 +20,6 @@ namespace WindowsFormsApp1
     public partial class MainForm : Form
     {
 
-        int x_pos = 0, x_pos2 = 0;
-        string pattern = @"\bwheel:(?<lrpm>\d+),(?<lout>\d+),(?<rrpm>\d+),(?<rout>\d+)\b";
-        string pattern2 = @"\bsteer:(?<theta>\d+),(?<rho>\d+),(?<fps>\d+),(?<out>\d+)\b";
-        string serial_string_endEnter;
-        private Bitmap SrcBmp;
-        int ImageHeight = 120, ImageWidth = 160;
-
-        PointPairList list_lrpm = new PointPairList();
-        PointPairList list_lout = new PointPairList();
-        PointPairList list_rrpm = new PointPairList();
-        PointPairList list_rout = new PointPairList();
-        PointPairList list_theta = new PointPairList();
-        PointPairList list_rho = new PointPairList();
-        PointPairList list_fps = new PointPairList();
-        PointPairList list_out = new PointPairList();
-
         public MainForm()
         {
             InitializeComponent();
@@ -66,8 +50,6 @@ namespace WindowsFormsApp1
             toolStripStatusLabel1.Text = "ready";
             refreshSerialPort();
 
-            CreateGraph(zedGraphControl1);
-            CreateGraph2(zedGraphControl2);
 
             timer1.Enabled = true;
             timer1.Interval = 100;//ms
@@ -125,40 +107,6 @@ namespace WindowsFormsApp1
             }
         }
 
-        private Bitmap CreateGrayBitmap(int Width, int Height)
-        {
-            //创建8位深度的灰度图像
-            Bitmap Bmp = new Bitmap(Width, Height, PixelFormat.Format8bppIndexed);
-            ColorPalette Pal = Bmp.Palette;
-            for (int Y = 0; Y < Pal.Entries.Length; Y++)
-            {
-                Pal.Entries[Y] = Color.FromArgb(255, Y, Y, Y);//将RGB转化为灰度调色板
-            }
-            Bmp.Palette = Pal;
-            return Bmp;
-        }
-
-        public void SaveImage(string name)
-        {
-            string Path;
-            Path = System.IO.Directory.GetCurrentDirectory();
-
-            SrcPicture.Image.Save(Path+ name + ".bmp", System.Drawing.Imaging.ImageFormat.Bmp);//指定图片格式   
-        }
-        void SaveImage(Image Src, string name)
-        {
-            string Path;
-            Path = System.IO.Directory.GetCurrentDirectory();
-
-            Src.Save(Path  + name + ".bmp", System.Drawing.Imaging.ImageFormat.Bmp);//指定图片格式   
-        }
-        public void SaveImage(string name, string SavePath)
-        {
-            string Path;
-            Path = System.IO.Directory.GetCurrentDirectory();
-            SrcPicture.Image.Save(Path + "\\" + SavePath + "\\" + name + ".bmp", System.Drawing.Imaging.ImageFormat.Bmp);//指定图片格式   
-        }
-
         private void post_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
@@ -174,88 +122,7 @@ namespace WindowsFormsApp1
                 }
                 receive_text.AppendText(txt);
 
-                foreach (char c in txt)
-                {
-                    serial_string_endEnter += c;
-                    if (c == '\n')
-                    {
-                        if (serial_string_endEnter.StartsWith("START")
-                            && serial_string_endEnter.EndsWith("END\r\n")
-                            )
-                        {
-                            int i = 0;
-                            //serial_string_endEnter.TrimStart("START".ToCharArray());
-                            //serial_string_endEnter.TrimEnd("END\r\n".ToCharArray());
-                            serial_string_endEnter = serial_string_endEnter.Replace("START", "");
-                            serial_string_endEnter = serial_string_endEnter.Replace("END\r\n", "");
-
-                            Console.WriteLine(serial_string_endEnter);
-
-                            if (SrcBmp != null)
-                            {
-                                SrcBmp.Dispose();
-
-                            }
-                            //SrcBmp.Dispose();
-                            SrcBmp = CreateGrayBitmap(ImageWidth, ImageHeight);
-                            BitmapData SrcData = SrcBmp.LockBits(new Rectangle(0, 0, ImageWidth, ImageHeight),
-                            ImageLockMode.ReadWrite, SrcBmp.PixelFormat);
-                            int SrcStride = SrcData.Stride;
-                            unsafe
-                            {
-                                byte* SrcP;
-                                for (int Y = 0; Y < ImageHeight; Y++)
-                                {
-                                    SrcP = (byte*)SrcData.Scan0 + Y * SrcStride;
-                                    for (int X = 0; X < ImageWidth; SrcP++, X++)
-                                    {
-                                        *SrcP = (byte)serial_string_endEnter[i];
-                                        i++;
-                                    }
-                                }
-                            }
-                            SrcBmp.UnlockBits(SrcData);
-                            SrcPicture.Image = SrcBmp;
-                            //SaveImage("autosave");
-                        }
-
-                        MatchCollection matchs = Regex.Matches(serial_string_endEnter, pattern);
-                        if (matchs.Count > 0)
-                        {
-                            Match match = matchs[0];
-                            int lrpm = Convert.ToInt32(match.Groups["lrpm"].Value);
-                            int lout = Convert.ToInt32(match.Groups["lout"].Value);
-                            int rrpm = Convert.ToInt32(match.Groups["rrpm"].Value);
-                            int rout = Convert.ToInt32(match.Groups["rout"].Value);
-
-                            //list_lrpm.Append()
-                            list_lrpm.Add(x_pos, lrpm);
-                            list_lout.Add(x_pos, lout);
-                            list_rrpm.Add(x_pos, rrpm);
-                            list_rout.Add(x_pos, rout);
-                            x_pos++;
-                        }
-
-                        MatchCollection matchs2 = Regex.Matches(serial_string_endEnter, pattern2);
-                        if (matchs2.Count > 0)
-                        {
-                            Match match = matchs2[0];
-
-                            int theta = Convert.ToInt32(match.Groups["theta"].Value);
-                            int rho = Convert.ToInt32(match.Groups["rho"].Value);
-                            int fps = Convert.ToInt32(match.Groups["fps"].Value);
-                            int servo_out = Convert.ToInt32(match.Groups["out"].Value);
-
-                            list_lrpm.Add(x_pos2, theta);
-                            list_rho.Add(x_pos2, rho);
-                            list_fps.Add(x_pos2, fps);
-                            list_out.Add(x_pos2, servo_out);
-                            x_pos2++;
-
-                        }
-                        serial_string_endEnter = "";
-                    }
-                }
+               
             }
             catch (Exception)
             {
@@ -314,63 +181,6 @@ namespace WindowsFormsApp1
             ConfigurationManager.RefreshSection("appSettings");
         }
 
-        private void CreateGraph(ZedGraphControl zgc)
-        {
-            GraphPane myPane = zgc.GraphPane;
-
-            // Set the title and axis labels
-            myPane.Title.Text = "PID OUT PLOT";
-            myPane.XAxis.Title.Text = "time";
-            myPane.YAxis.Title.Text = "pid info";
-
-            //SymbolType.Circle 
-            //SymbolType.Diamond
-            LineItem myCurve = myPane.AddCurve("lrpm",
-                 list_lrpm, Color.Red, SymbolType.None);
-
-            LineItem myCurve2 = myPane.AddCurve("lout",
-                 list_lout, Color.Blue, SymbolType.None);
-
-            LineItem myCurve3 = myPane.AddCurve("rrpm",
-                 list_rrpm, Color.Purple, SymbolType.None);
-
-            LineItem myCurve4 = myPane.AddCurve("rout",
-                 list_rout, Color.Yellow, SymbolType.None);
-
-            //zgc.AxisChange();
-
-
-        }
-        
-        private void CreateGraph2(ZedGraphControl zgc)
-
-        {
-            GraphPane myPane = zgc.GraphPane;
-
-            // Set the title and axis labels
-            myPane.Title.Text = "PID OUT PLOT";
-            myPane.XAxis.Title.Text = "time";
-            myPane.YAxis.Title.Text = "pid info";
-
-            //SymbolType.Circle 
-            //SymbolType.Diamond
-            LineItem myCurve = myPane.AddCurve("theta",
-                 list_theta, Color.Red, SymbolType.None);
-
-            LineItem myCurve2 = myPane.AddCurve("rho",
-                 list_rho, Color.Blue, SymbolType.None);
-
-            LineItem myCurve3 = myPane.AddCurve("fps",
-                 list_fps, Color.Purple, SymbolType.None);
-
-            LineItem myCurve4 = myPane.AddCurve("out",
-                 list_out, Color.Yellow, SymbolType.None);
-
-            //zgc.AxisChange();
-
-
-        }
-
         private void btn_reboot_Click(object sender, EventArgs e)
         {
             send_text("reboot");
@@ -383,12 +193,6 @@ namespace WindowsFormsApp1
             }
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            zedGraphControl1.Refresh();
-            zedGraphControl1.AxisChange();
-        }
-
         private void button8_Click(object sender, EventArgs e)
         {
             send_text("help");
@@ -397,15 +201,6 @@ namespace WindowsFormsApp1
         private void button9_Click(object sender, EventArgs e)
         {
             send_text("ps");
-        }
-
-        private void button12_Click(object sender, EventArgs e)
-        {
-            list_lrpm.Clear();
-            list_lout.Clear();
-            list_rrpm.Clear();
-            list_rout.Clear();
-            x_pos = 0;
         }
 
         private void motor_debug_CheckedChanged(object sender, EventArgs e)
@@ -448,36 +243,30 @@ namespace WindowsFormsApp1
             send_cmd("set_steer_debug_cmd", servo_debug.Checked);
         }
 
-        private void button18_Click(object sender, EventArgs e)
-        {
-            list_theta.Clear();
-            list_rho .Clear();
-            list_fps .Clear();
-            list_out .Clear();
-            x_pos2 = 0;
-        }
-
         private void button3_Click(object sender, EventArgs e)
         {
-            send_cmd("set_dym_speed_param_cmd",
-                param1.Value,
-                param2.Value,
-                param3.Value,
-                param4.Value,
-                speed_min.Value,
-                speed_max.Value
+            send_cmd("dym_param_set_cmd",
+                s_zhi.Value,
+                s_max.Value,
+                s_wan1.Value,
+                s_wan2.Value,
+                s_cross.Value,
+                s_huan.Value,
+
+                fore_min.Value,
+                fore_max.Value
                 );
         }
 
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
-            send_cmd("set_velocity_cmd", trackBar1.Value/100);
+            send_cmd("set_velocity_cmd", trackBar1.Value);
         }
 
-        private void pic_type_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            send_cmd("set_disp_pic_type_cmd", pic_type.SelectedItem);
-        }
+        //private void pic_type_SelectedIndexChanged(object sender, EventArgs e)
+        //{
+        //    send_cmd("set_disp_pic_type_cmd", pic_type.SelectedItem);
+        //}
 
         private void button5_Click(object sender, EventArgs e)
         {
@@ -486,6 +275,11 @@ namespace WindowsFormsApp1
         }
 
         private void button6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void groupBox6_Enter(object sender, EventArgs e)
         {
 
         }
