@@ -25,6 +25,7 @@ namespace WindowsFormsApp1
         string pattern2 = @"\bsteer:(?<theta>\d+),(?<rho>\d+),(?<fps>\d+),(?<out>\d+)\b";
         string serial_string_endEnter;
         private Bitmap SrcBmp;
+        int ImageHeight = 120, ImageWidth = 160;
 
         PointPairList list_lrpm = new PointPairList();
         PointPairList list_lout = new PointPairList();
@@ -136,98 +137,131 @@ namespace WindowsFormsApp1
             Bmp.Palette = Pal;
             return Bmp;
         }
-        int ImageHeight = 120, ImageWidth = 160;
+
+        public void SaveImage(string name)
+        {
+            string Path;
+            Path = System.IO.Directory.GetCurrentDirectory();
+
+            SrcPicture.Image.Save(Path+ name + ".bmp", System.Drawing.Imaging.ImageFormat.Bmp);//指定图片格式   
+        }
+        void SaveImage(Image Src, string name)
+        {
+            string Path;
+            Path = System.IO.Directory.GetCurrentDirectory();
+
+            Src.Save(Path  + name + ".bmp", System.Drawing.Imaging.ImageFormat.Bmp);//指定图片格式   
+        }
+        public void SaveImage(string name, string SavePath)
+        {
+            string Path;
+            Path = System.IO.Directory.GetCurrentDirectory();
+            SrcPicture.Image.Save(Path + "\\" + SavePath + "\\" + name + ".bmp", System.Drawing.Imaging.ImageFormat.Bmp);//指定图片格式   
+        }
+
         private void post_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            string txt = serialPort.ReadExisting();
-            if (txt.IndexOf("\r\n") == -1)
+            try
             {
-                if (txt.IndexOf("\n") != -1)
+                string txt = serialPort.ReadExisting();
+                if (txt.IndexOf("\r\n") == -1)
                 {
-                    txt = txt.Replace("\n", "\r\n");
-
-                }
-            }
-            receive_text.AppendText(txt);
-
-            foreach(char c in txt)
-            {
-                serial_string_endEnter += c;
-                if (c == '\n')
-                {
-                    if (serial_string_endEnter.StartsWith("START") &&
-                        serial_string_endEnter.EndsWith("END\r\n"))
+                    if (txt.IndexOf("\n") != -1)
                     {
-                        int i=0;
-                        //serial_string_endEnter.TrimStart("START".ToCharArray());
-                        //serial_string_endEnter.TrimEnd("END\r\n".ToCharArray());
-                        serial_string_endEnter=serial_string_endEnter.Replace("START", "");
-                        serial_string_endEnter=serial_string_endEnter.Replace("END\r\n", "");
+                        txt = txt.Replace("\n", "\r\n");
 
-                        Console.WriteLine(serial_string_endEnter);
+                    }
+                }
+                receive_text.AppendText(txt);
 
-                        if (SrcBmp != null)
+                foreach (char c in txt)
+                {
+                    serial_string_endEnter += c;
+                    if (c == '\n')
+                    {
+                        if (serial_string_endEnter.StartsWith("START")
+                            && serial_string_endEnter.EndsWith("END\r\n")
+                            )
                         {
-                            SrcBmp.Dispose();
+                            int i = 0;
+                            //serial_string_endEnter.TrimStart("START".ToCharArray());
+                            //serial_string_endEnter.TrimEnd("END\r\n".ToCharArray());
+                            serial_string_endEnter = serial_string_endEnter.Replace("START", "");
+                            serial_string_endEnter = serial_string_endEnter.Replace("END\r\n", "");
 
-                        }
-                        SrcBmp = CreateGrayBitmap(ImageHeight, ImageWidth);
-                        BitmapData SrcData = SrcBmp.LockBits(new Rectangle(0, 0, ImageHeight, ImageWidth), ImageLockMode.ReadWrite, SrcBmp.PixelFormat);
-                        int SrcStride = SrcData.Stride;
-                        unsafe
-                        {
-                            byte* SrcP;
-                            for (int Y = 0; Y < ImageWidth; Y++)
+                            Console.WriteLine(serial_string_endEnter);
+
+                            if (SrcBmp != null)
                             {
-                                SrcP = (byte*)SrcData.Scan0 + Y * SrcStride;
-                                for (int X = 0; X < ImageHeight; SrcP++, X++)
+                                SrcBmp.Dispose();
+
+                            }
+                            //SrcBmp.Dispose();
+                            SrcBmp = CreateGrayBitmap(ImageWidth, ImageHeight);
+                            BitmapData SrcData = SrcBmp.LockBits(new Rectangle(0, 0, ImageWidth, ImageHeight),
+                            ImageLockMode.ReadWrite, SrcBmp.PixelFormat);
+                            int SrcStride = SrcData.Stride;
+                            unsafe
+                            {
+                                byte* SrcP;
+                                for (int Y = 0; Y < ImageHeight; Y++)
                                 {
-                                    *SrcP = (byte)serial_string_endEnter[i];
-                                    i++;
+                                    SrcP = (byte*)SrcData.Scan0 + Y * SrcStride;
+                                    for (int X = 0; X < ImageWidth; SrcP++, X++)
+                                    {
+                                        *SrcP = (byte)serial_string_endEnter[i];
+                                        i++;
+                                    }
                                 }
                             }
+                            SrcBmp.UnlockBits(SrcData);
+                            SrcPicture.Image = SrcBmp;
+                            //SaveImage("autosave");
                         }
-                        SrcBmp.UnlockBits(SrcData);
-                        SrcPicture.Image = SrcBmp;
+
+                        MatchCollection matchs = Regex.Matches(serial_string_endEnter, pattern);
+                        if (matchs.Count > 0)
+                        {
+                            Match match = matchs[0];
+                            int lrpm = Convert.ToInt32(match.Groups["lrpm"].Value);
+                            int lout = Convert.ToInt32(match.Groups["lout"].Value);
+                            int rrpm = Convert.ToInt32(match.Groups["rrpm"].Value);
+                            int rout = Convert.ToInt32(match.Groups["rout"].Value);
+
+                            //list_lrpm.Append()
+                            list_lrpm.Add(x_pos, lrpm);
+                            list_lout.Add(x_pos, lout);
+                            list_rrpm.Add(x_pos, rrpm);
+                            list_rout.Add(x_pos, rout);
+                            x_pos++;
+                        }
+
+                        MatchCollection matchs2 = Regex.Matches(serial_string_endEnter, pattern2);
+                        if (matchs2.Count > 0)
+                        {
+                            Match match = matchs2[0];
+
+                            int theta = Convert.ToInt32(match.Groups["theta"].Value);
+                            int rho = Convert.ToInt32(match.Groups["rho"].Value);
+                            int fps = Convert.ToInt32(match.Groups["fps"].Value);
+                            int servo_out = Convert.ToInt32(match.Groups["out"].Value);
+
+                            list_lrpm.Add(x_pos2, theta);
+                            list_rho.Add(x_pos2, rho);
+                            list_fps.Add(x_pos2, fps);
+                            list_out.Add(x_pos2, servo_out);
+                            x_pos2++;
+
+                        }
+                        serial_string_endEnter = "";
                     }
-
-                    MatchCollection matchs = Regex.Matches(serial_string_endEnter, pattern);
-                    if (matchs.Count > 0)
-                    {
-                        Match match = matchs[0];
-                        int lrpm=Convert.ToInt32(match.Groups["lrpm"].Value);
-                        int lout= Convert.ToInt32(match.Groups["lout"].Value);
-                        int rrpm= Convert.ToInt32(match.Groups["rrpm"].Value);
-                        int rout= Convert.ToInt32(match.Groups["rout"].Value);
-
-                        //list_lrpm.Append()
-                        list_lrpm.Add(x_pos,lrpm);
-                        list_lout.Add(x_pos,lout);
-                        list_rrpm.Add(x_pos,rrpm);
-                        list_rout.Add(x_pos, rout);
-                        x_pos++;
-                    }
-
-                    MatchCollection matchs2 = Regex.Matches(serial_string_endEnter, pattern2);
-                    if (matchs2.Count > 0)
-                    {
-                        Match match = matchs2[0];
-
-                        int theta = Convert.ToInt32(match.Groups["theta"].Value);
-                        int rho = Convert.ToInt32(match.Groups["rho"].Value);
-                        int fps = Convert.ToInt32(match.Groups["fps"].Value);
-                        int servo_out= Convert.ToInt32(match.Groups["out"].Value);
-
-                        list_lrpm.Add(x_pos2, theta);
-                        list_rho.Add(x_pos2, rho);
-                        list_fps.Add(x_pos2, fps);
-                        list_out.Add(x_pos2, servo_out);
-                        x_pos2++;
-
-                    }
-                    serial_string_endEnter = "";
                 }
             }
+            catch (Exception)
+            {
+
+            }
+            
         }
         
         private void send_text(string txt)
@@ -445,9 +479,20 @@ namespace WindowsFormsApp1
             send_cmd("set_disp_pic_type_cmd", pic_type.SelectedItem);
         }
 
+        private void button5_Click(object sender, EventArgs e)
+        {
+            send_cmd("upload_my_gray");
+
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void up_comp_Click(object sender, EventArgs e)
         {
-            send_cmd("upload_compbinimage");
+            send_cmd("upload_my_bin");
         }
 
         private void up_uncomp_Click(object sender, EventArgs e)

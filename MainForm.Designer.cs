@@ -30,10 +30,10 @@ namespace WindowsFormsApp1
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series7 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series8 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.serialPort = new System.IO.Ports.SerialPort(this.components);
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -109,6 +109,8 @@ namespace WindowsFormsApp1
             this.pic_type = new System.Windows.Forms.ComboBox();
             this.button13 = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.button5 = new System.Windows.Forms.Button();
+            this.button6 = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -309,25 +311,25 @@ namespace WindowsFormsApp1
             // 
             // chart1
             // 
-            chartArea3.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea3);
+            chartArea4.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea4);
             this.chart1.Cursor = System.Windows.Forms.Cursors.IBeam;
-            legend3.Name = "Legend1";
-            this.chart1.Legends.Add(legend3);
+            legend4.Name = "Legend1";
+            this.chart1.Legends.Add(legend4);
             this.chart1.Location = new System.Drawing.Point(15, 10);
             this.chart1.Name = "chart1";
             this.chart1.Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.SeaGreen;
-            series5.ChartArea = "ChartArea1";
-            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series5.Legend = "Legend1";
-            series5.Name = "Series1";
-            series6.ChartArea = "ChartArea1";
-            series6.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series6.Color = System.Drawing.Color.Navy;
-            series6.Legend = "Legend1";
-            series6.Name = "Series2";
-            this.chart1.Series.Add(series5);
-            this.chart1.Series.Add(series6);
+            series7.ChartArea = "ChartArea1";
+            series7.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series7.Legend = "Legend1";
+            series7.Name = "Series1";
+            series8.ChartArea = "ChartArea1";
+            series8.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series8.Color = System.Drawing.Color.Navy;
+            series8.Legend = "Legend1";
+            series8.Name = "Series2";
+            this.chart1.Series.Add(series7);
+            this.chart1.Series.Add(series8);
             this.chart1.Size = new System.Drawing.Size(732, 93);
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart1";
@@ -399,7 +401,7 @@ namespace WindowsFormsApp1
             // 
             // button17
             // 
-            this.button17.Location = new System.Drawing.Point(66, 107);
+            this.button17.Location = new System.Drawing.Point(190, 112);
             this.button17.Name = "button17";
             this.button17.Size = new System.Drawing.Size(75, 27);
             this.button17.TabIndex = 37;
@@ -1007,6 +1009,8 @@ namespace WindowsFormsApp1
             // 
             // tabPage3
             // 
+            this.tabPage3.Controls.Add(this.button6);
+            this.tabPage3.Controls.Add(this.button5);
             this.tabPage3.Controls.Add(this.SrcPicture);
             this.tabPage3.Controls.Add(this.button4);
             this.tabPage3.Controls.Add(this.pic_type);
@@ -1063,6 +1067,24 @@ namespace WindowsFormsApp1
             // timer1
             // 
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(284, 6);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(75, 23);
+            this.button5.TabIndex = 58;
+            this.button5.Text = "grayimage";
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
+            // button6
+            // 
+            this.button6.Location = new System.Drawing.Point(284, 41);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(75, 23);
+            this.button6.TabIndex = 59;
+            this.button6.Text = "save";
+            this.button6.Click += new System.EventHandler(this.button6_Click);
             // 
             // MainForm
             // 
@@ -1198,6 +1220,8 @@ namespace WindowsFormsApp1
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.ComboBox pic_type;
         private System.Windows.Forms.Button button13;
+        private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.Button button6;
     }
 }
 
